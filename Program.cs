@@ -9,14 +9,30 @@
     }
     static void Main()
     {
-        Console.CursorVisible = false;
-        const int FieldWidth = 70;
-        const int FieldHeight = 40;
-        const int FieldDeep = 40;
-        _field = new bool[FieldWidth, FieldHeight, FieldDeep];
-        _x = 20;
-        _y = 20;
-        _z = 20;
+        try
+        {
+            Console.CursorVisible = false;
+            const int FieldWidth = 30;
+            const int FieldHeight = 30;
+            const int FieldDepth = 10;
+            _field = new bool[FieldWidth, FieldHeight, FieldDepth];
+            _x = 15;
+            _y = 15;
+            _z = 5;
+            while (true)
+            {
+                DrawField();
+                ProcessInput();
+            }
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception.ToString());
+        }
+        finally
+        {
+            Console.ReadKey();
+        }
     }
     // 001' 002' 010' 011' 012' 020' 021' 022 100 101 102 110 111 112 120 121 122 200 201 202 210 211 212 220 221 222
     // 0 = not offset; 1 = +1; 2 = -1;
@@ -46,15 +62,15 @@
         {
             count++;
         }
-        if (row != 0 && _field[column, row - 1, height])
+        if (row != 0 && _field[column, row - 1, layer])
         {
             count++;
         }
-        if (row != 0 && layer == deep && _field[column, row - 1, layer + 1])
+        if (row != 0 && layer != deep && _field[column, row - 1, layer + 1])
         {
             count++;
         }
-        if (row == 0 && layer == 0 && _field[column, row - 1, layer - 1])
+        if (row != 0 && layer != 0 && _field[column, row - 1, layer - 1])
         {
             count++;
         }
@@ -82,15 +98,15 @@
         {
             count++;
         }
-        if (column != width && row != 0 && _field[column + 1, row - 1, height])
+        if (column != width && row != 0 && _field[column + 1, row - 1, layer])
         {
             count++;
         }
-        if (column != width && row != 0 && layer == deep && _field[column + 1, row - 1, layer + 1])
+        if (column != width && row != 0 && layer != deep && _field[column + 1, row - 1, layer + 1])
         {
             count++;
         }
-        if (column != width && row == 0 && layer == 0 && _field[column + 1, row - 1, layer - 1])
+        if (column != width && row != 0 && layer != 0 && _field[column + 1, row - 1, layer - 1])
         {
             count++;
         }
@@ -118,7 +134,7 @@
         {
             count++;
         }
-        if (column != 0 && row != 0 && _field[column - 1, row - 1, height])
+        if (column != 0 && row != 0 && _field[column - 1, row - 1, layer])
         {
             count++;
         }
@@ -126,7 +142,7 @@
         {
             count++;
         }
-        if (column != 0 && row == 0 && layer == 0 && _field[column - 1, row - 1, layer - 1])
+        if (column != 0 && row != 0 && layer != 0 && _field[column - 1, row - 1, layer - 1])
         {
             count++;
         }
@@ -135,11 +151,11 @@
     static void Evolution()
     {
         var newField = new bool[_field.GetLength(0), _field.GetLength(1), _field.GetLength(2)];
-        for (int layer = 0; layer < _field.GetLength(2); layer++)
+        for (int layer = 0; layer < _field.GetLength(2) - 1; layer++)
         {
-            for (int row = 0; row < _field.GetLength(1); row++)
+            for (int row = 0; row < _field.GetLength(1) - 1; row++)
             {
-                for (int column = 0; column < _field.GetLength(0); column++)
+                for (int column = 0; column < _field.GetLength(0) - 1; column++)
                 {
                     switch (_rules)
                     {
@@ -195,9 +211,10 @@
                 if (_z < _field.GetLength(2) - 1)
                     _z++;
                 break;
-            case ConsoleKey.S
+            case ConsoleKey.S:
                 if (_z > 0)
-                    _z--
+                    _z--;
+                break;
             case ConsoleKey.Spacebar:
                 _field[_x, _y, _z] = !_field[_x, _y, _z];
                 break;
@@ -206,5 +223,32 @@
                 Evolution();
                 break;
         }
+    }
+    static void DrawField()
+    {
+        Console.CursorLeft = 0;
+        Console.CursorTop = 0;
+        for (int layer = 0; layer < _field.GetLength(2) - 1; layer++)
+        {
+            for (int row = 0; row < _field.GetLength(1) - 1; row++)
+            {
+                for (int column = 0; column < _field.GetLength(0) - 1; column++)
+                {
+                    if (_field[column, row, layer])
+                    {
+                        Console.Write('*');
+                    }
+                    else
+                    {
+                        Console.Write('.');
+                    }
+                }
+                Console.WriteLine();
+            }
+            Console.CursorLeft = 0;
+            Console.CursorTop += 2;
+        }
+        Console.CursorLeft = _x;
+        Console.CursorTop = _y;
     }
 }
