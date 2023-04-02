@@ -5,20 +5,23 @@
     static Rules _rules;
     enum Rules
     {
-        Life
+        Life,
+        HTree
     }
     static void Main()
     {
         try
         {
             Console.CursorVisible = false;
-            const int FieldWidth = 30;
-            const int FieldHeight = 30;
-            const int FieldDepth = 10;
+            const int FieldWidth = 40;
+            const int FieldHeight = 40;
+            const int FieldDepth = 40;
             _field = new bool[FieldWidth, FieldHeight, FieldDepth];
-            _x = 15;
-            _y = 15;
-            _z = 5;
+            _x = 20;
+            _y = 20;
+            _z = 20;
+            _field[20, 20, 20] = true;
+            _rules = Rules.HTree;
             while (true)
             {
                 DrawField();
@@ -138,7 +141,7 @@
         {
             count++;
         }
-        if (column != 0 && row != 0 && layer == deep && _field[column - 1, row - 1, layer + 1])
+        if (column != 0 && row != 0 && layer != deep && _field[column - 1, row - 1, layer + 1])
         {
             count++;
         }
@@ -178,10 +181,27 @@
                                 }
                                 break;
                             }
+                        case Rules.HTree:
+                            {
+                                var count = GetNeighborCount(column, row, layer);
+                                if (_field[column, row, layer])
+                                {
+                                    if (count is 1)
+                                    {
+                                        newField[column, row, layer] = true;
+                                    }
+                                }
+                                else
+                                {
+                                    newField[column, row, layer] = true;
+                                }
+                                break;
+                            }
                     }
                 }
             }
         }
+        _field = newField;
     }
     static void ProcessInput()
     {
@@ -220,7 +240,7 @@
                 break;
 
             case ConsoleKey.N:
-                Evolution();
+                Evolution("4", "34");
                 break;
         }
     }
@@ -228,13 +248,13 @@
     {
         Console.CursorLeft = 0;
         Console.CursorTop = 0;
-        for (int layer = 0; layer < _field.GetLength(2) - 1; layer++)
+        // for (int layer = 0; layer < _field.GetLength(2) - 1; layer++)
         {
             for (int row = 0; row < _field.GetLength(1) - 1; row++)
             {
                 for (int column = 0; column < _field.GetLength(0) - 1; column++)
                 {
-                    if (_field[column, row, layer])
+                    if (_field[column, row, _z])
                     {
                         Console.Write('*');
                     }
@@ -250,5 +270,59 @@
         }
         Console.CursorLeft = _x;
         Console.CursorTop = _y;
+    }
+    static void OnRandom(double probability)
+    {
+        var rng = new Random();
+        for (int layer = 0; layer < _field.GetLength(2) - 1; layer++)
+        {
+            for (int row = 0; row < _field.GetLength(1) - 1; row++)
+            {
+                for (int column = 0; column < _field.GetLength(0) - 1; column++)
+                {
+                    if (rng.NextDouble() < probability)
+                    {
+                        _field[column, row, layer] = true;
+                    }
+                }
+                Console.WriteLine();
+            }
+            Console.CursorLeft = 0;
+            Console.CursorTop += 2;
+        }
+        Console.CursorLeft = _x;
+        Console.CursorTop = _y;
+    }
+    public static void Evolution(string birth, string survival)
+    {
+        var width = _field.GetLength(0);
+        var height = _field.GetLength(1);
+        var depth = _field.GetLength(2);
+        var newField = new bool[width, height, depth];
+        for (int layer = 0; layer < depth; layer++)
+        {
+            for (int row = 0; row < width; row++)
+            {
+                for (int column = 0; column < height; column++)
+                {
+                    if (_field[column, row, layer])
+                    {
+                        if (survival.Contains(GetNeighborCount(column, row, layer).ToString()) && _field[column, row, layer])
+                        {
+                            newField[column, row, layer] = true;
+                        }
+                    }
+                    else
+                    {
+                        if (birth.Contains(GetNeighborCount(column, row, layer).ToString()) && !_field[column, row, layer])
+                        {
+                            newField[column, row, layer] = true;
+                        }
+                    }
+                }
+            }
+
+        }
+        _field = newField;
     }
 }
